@@ -1,5 +1,9 @@
 -- BibiModz Script https://discord.gg/dr9UuDgT8N
 
+local startPoint = nil 
+local totalCost = 0 
+
+
 function loadModel(model)
     RequestModel(model)
     local retries = 0
@@ -102,6 +106,8 @@ function callTaxi()
                     Wait(500)
                 end
 
+                startPoint = GetEntityCoords(taxiEntity) 
+
                 local blip = GetFirstBlipInfoId(8)
                 if DoesBlipExist(blip) then
                     local blipPos = GetBlipInfoIdCoord(blip)
@@ -126,6 +132,14 @@ function callTaxi()
 
                                 while IsPedInVehicle(playerPed, taxiEntity, false) do
                                     Wait(500)
+                                end
+
+                                local endPoint = GetEntityCoords(taxiEntity)  
+                                local distanceTraveled = #(startPoint - endPoint) 
+                                totalCost = math.floor(distanceTraveled * Config.PricePerMeter) 
+
+                                if totalCost > 0 then
+                                    processPayment(totalCost) 
                                 end
 
                                 TaskVehiclePark(driverEntity, taxiEntity, taxiPos.x, taxiPos.y, taxiPos.z, GetEntityHeading(taxiEntity), 0, 20.0, false)
@@ -158,6 +172,31 @@ function callTaxi()
         end
     end)
 end
+
+
+function processPayment(cost)
+    local playerPed = PlayerPedId()
+    local playerId = GetPlayerServerId(PlayerId())
+    if Config.PricePerMeter == 0.0 or cost == 0 then
+        lib.notify({
+            title = Config.TaxiNotifyTitle,
+            description = "La course était gratuite.",
+            type = "inform"
+        })
+        return
+    end
+
+
+    TriggerServerEvent('esx_billing:sendBill', playerId, 'society_taxi', 'Taxi Service', cost)
+    lib.notify({
+        title = Config.TaxiNotifyTitle,
+        description = "Vous avez reçu une facture de $" .. cost .. " pour la course.",
+        type = "success"
+    })
+end
+
+
+
 
 function cancelTaxi()
     if taxiInProgress then
