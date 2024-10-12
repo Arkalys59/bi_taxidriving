@@ -52,5 +52,7 @@ Config.Menu = {
     }
 }
 
+Config.PricePerMeter = 0.5 -- Prix par mètre parcouru | 0.0 aucune facture 
+
 
 -- BibiModz Script https://discord.gg/dr9UuDgT8N
