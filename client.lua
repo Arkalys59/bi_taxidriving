@@ -1,8 +1,8 @@
--- BibiModz Script https://discord.gg/dr9UuDgT8N
-
-local startPoint = nil 
-local totalCost = 0 
-
+local startPoint = nil
+local totalCost = 0
+local taxiInProgress = false
+local taxiArrived = false
+local taxiEntity, driverEntity, taxiBlip = nil
 
 function loadModel(model)
     RequestModel(model)
@@ -90,18 +90,20 @@ function callTaxi()
         while true do
             Wait(500)
 
+            local playerPos = GetEntityCoords(playerPed)
             local taxiPos = GetEntityCoords(taxiEntity)
             local distanceToPlayer = #(playerPos - taxiPos)
 
-            if distanceToPlayer < Config.TaxiArrivalDistance then
-                TaskVehicleTempAction(driverEntity, taxiEntity, 1, -1)
-
-                local seatIndex = 1
+            
+            if distanceToPlayer < 10.0 then
+                
+                local seatIndex = 1 
                 if not IsVehicleSeatFree(taxiEntity, 1) then
-                    seatIndex = 2
+                    seatIndex = 2 
                 end
                 TaskEnterVehicle(playerPed, taxiEntity, -1, seatIndex, 1.0, 1, 0)
 
+                
                 while not IsPedInVehicle(playerPed, taxiEntity, false) do
                     Wait(500)
                 end
@@ -129,17 +131,16 @@ function callTaxi()
                                     description = Config.TaxiNotifyMessages.arrived,
                                     type = "success"
                                 })
-
                                 while IsPedInVehicle(playerPed, taxiEntity, false) do
                                     Wait(500)
                                 end
 
-                                local endPoint = GetEntityCoords(taxiEntity)  
-                                local distanceTraveled = #(startPoint - endPoint) 
-                                totalCost = math.floor(distanceTraveled * Config.PricePerMeter) 
+                                local endPoint = GetEntityCoords(taxiEntity)
+                                local distanceTraveled = #(startPoint - endPoint)
+                                totalCost = math.floor(distanceTraveled * Config.PricePerMeter)
 
                                 if totalCost > 0 then
-                                    processPayment(totalCost) 
+                                    processPayment(totalCost)
                                 end
 
                                 TaskVehiclePark(driverEntity, taxiEntity, taxiPos.x, taxiPos.y, taxiPos.z, GetEntityHeading(taxiEntity), 0, 20.0, false)
@@ -173,10 +174,9 @@ function callTaxi()
     end)
 end
 
-
 function processPayment(cost)
-    local playerPed = PlayerPedId()
     local playerId = GetPlayerServerId(PlayerId())
+
     if Config.PricePerMeter == 0.0 or cost == 0 then
         lib.notify({
             title = Config.TaxiNotifyTitle,
@@ -186,17 +186,14 @@ function processPayment(cost)
         return
     end
 
-
     TriggerServerEvent('esx_billing:sendBill', playerId, 'society_taxi', 'Taxi Service', cost)
+
     lib.notify({
         title = Config.TaxiNotifyTitle,
         description = "Vous avez reçu une facture de $" .. cost .. " pour la course.",
         type = "success"
     })
 end
-
-
-
 
 function cancelTaxi()
     if taxiInProgress then
@@ -251,6 +248,3 @@ end, false)
 CreateThread(function()
     spawnTaxiNPC()
 end)
-
-
--- BibiModz Script https://discord.gg/dr9UuDgT8N
