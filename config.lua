@@ -12,9 +12,9 @@ Config.NpcPosition = vector3(-1036.52734375, -2731.7763671875, 20.169290542603)
 Config.NpcHeading = 147.1365814209
 
 -- Distance
-Config.SpawnDistance = 50.0
-Config.TaxiArrivalDistance = 10.0
-Config.DestinationArrivalDistance = 10.0
+Config.SpawnDistance = 50.0 -- distance du taxi
+Config.TaxiArrivalDistance = 10.0  -- pas toucher 
+Config.DestinationArrivalDistance = 10.0 -- pas toucher 
 
 -- Conduite
 Config.TaxiSpeed = 20.0
